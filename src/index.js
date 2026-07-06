@@ -1,5 +1,5 @@
 import { getImageUrls, downloadImage, checkBannedImage } from './imageCheck.js';
-import { invalidateBannedCache } from './bannedImages.js';
+import { invalidateBannedCache, loadBannedHashes } from './bannedImages.js';
 
 /**
  * Analyse les images d'un message Discord.js
@@ -37,4 +37,10 @@ export async function analyzeMessageImages(message, options = {}) {
   return result;
 }
 
-export { invalidateBannedCache };
+export {
+  invalidateBannedCache,
+  loadBannedHashes,
+  getImageUrls,
+  downloadImage,
+  checkBannedImage,
+};
