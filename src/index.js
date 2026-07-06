@@ -16,14 +16,23 @@ import { checkUrls } from './urlCheck.js';
  * @returns {Promise<{score: number, imageFlag: object|null, factors: string[]}>}
  */
 export async function analyzeMessageImages(message, options = {}) {
+  console.log(`[ScamGuard][index] === Analyse démarrée pour message ${message.id} de ${message.author.tag} ===`);
+
   const bannedImagesScore = options.bannedImagesScore ?? 50;
   const result = { score: 0, imageFlag: null, factors: [] };
 
   const urls = await getImageUrls(message);
+  console.log(`[ScamGuard][index] Étape image: ${urls.length} URL(s) à analyser`);
+
   if (urls.length) {
     const downloaded = await Promise.all(
       urls.map(async url => ({ url, buffer: await downloadImage(url) }))
     );
+
+    const failedDownloads = downloaded.filter(d => d.buffer === null).length;
+    if (failedDownloads) {
+      console.warn(`[ScamGuard][index] ${failedDownloads} téléchargement(s) d'image échoué(s)`);
+    }
 
     const bannedResults = await Promise.all(
       downloaded
@@ -33,29 +42,39 @@ export async function analyzeMessageImages(message, options = {}) {
 
     const match = bannedResults.find(r => r !== null);
     if (match) {
+      console.log(`[ScamGuard][index] Image bannie détectée: ${match.matched} (similarité: ${match.similarity}%, +${bannedImagesScore})`);
       result.imageFlag = { banned: match };
       result.score += bannedImagesScore;
       result.factors.push(`banned_image (${match.matched}, ${match.similarity}%)`);
+    } else {
+      console.log('[ScamGuard][index] Aucune image bannie détectée parmi les URLs analysées');
     }
+  } else {
+    console.log('[ScamGuard][index] Aucune image à analyser dans ce message');
   }
 
   const keywordFactors = checkKeywords(message.content || '', options.keywords);
+  console.log(`[ScamGuard][index] Étape mots-clés: ${keywordFactors.length} facteur(s) trouvé(s)`);
   for (const f of keywordFactors) {
     result.score += f.score;
     result.factors.push(`${f.name} (+${f.score})`);
   }
 
   const signalFactors = computeUserSignals(message, options);
+  console.log(`[ScamGuard][index] Étape signaux utilisateur: ${signalFactors.length} facteur(s) trouvé(s)`);
   for (const f of signalFactors) {
     result.score += f.score;
     result.factors.push(`${f.name} (+${f.score})`);
   }
 
   const urlFactors = await checkUrls(message.content, options);
+  console.log(`[ScamGuard][index] Étape URLs: ${urlFactors.length} facteur(s) trouvé(s)`);
   for (const f of urlFactors) {
     result.score += f.score;
     result.factors.push(`${f.name} (+${f.score})`);
   }
+
+  console.log(`[ScamGuard][index] === Score final: ${result.score} | Facteurs: [${result.factors.join(', ')}] ===`);
 
   return result;
 }

@@ -11,12 +11,15 @@ const DEFAULT_KEYWORDS = [
 ];
 
 export function checkKeywords(text, keywords = DEFAULT_KEYWORDS) {
+  console.log(`[ScamGuard][keywordCheck] Analyse du texte (longueur: ${text?.length || 0})`);
   const factors = [];
-  const lower = text.toLowerCase();
+  const lower = (text || '').toLowerCase();
   for (const { word, weight } of keywords) {
     if (lower.includes(word.toLowerCase())) {
+      console.log(`[ScamGuard][keywordCheck] Mot-clé détecté: "${word}" (+${weight})`);
       factors.push({ name: word.replace(/\s/g, '_'), score: weight });
     }
   }
+  console.log(`[ScamGuard][keywordCheck] ${factors.length} facteur(s) trouvé(s)`);
   return factors;
 }
