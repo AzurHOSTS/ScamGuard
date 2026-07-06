@@ -1,0 +1,33 @@
+{
+  "name": "@azurhosts/scamguard-images",
+  "version": "1.0.0",
+  "description": "Plugin de détection d'images de scam par hash perceptuel pour bots Discord.js",
+  "main": "src/index.js",
+  "keywords": [
+    "discord",
+    "scam",
+    "bot",
+    "image",
+    "detection",
+    "phash",
+    "moderation"
+  ],
+  "author": "AzurHOSTS",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AzurHOSTS/ScamGuard.git"
+  },
+  "homepage": "https://github.com/AzurHOSTS/ScamGuard#readme",
+  "bugs": {
+    "url": "https://github.com/AzurHOSTS/ScamGuard/issues"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "blockhash-js": "^0.0.5",
+    "jimp": "^0.22.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
