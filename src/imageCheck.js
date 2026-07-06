@@ -24,7 +24,7 @@ export async function downloadImage(url, maxSize = 5 * 1024 * 1024, timeoutMs = 
 }
 
 export async function checkBannedImage(imageBuffer, options = {}) {
-  const threshold = options.bannedImagesThreshold ?? 0.15;
+  const threshold = options.bannedImagesThreshold ?? 0.3125;
   const bannedDir = options.bannedImagesDir ?? './banned_images';
 
   const banned = await loadBannedHashes(bannedDir);
@@ -45,15 +45,21 @@ export async function checkBannedImage(imageBuffer, options = {}) {
     console.log(`[ScamGuard][imageCheck] Hash de l'image testée: ${h}`);
 
     let bestMatch = null;
+    let bestDistance = Infinity;
+
     for (const { fname, hash: bh } of banned) {
       const d = compareHashes(h, bh);
-      console.log(`[ScamGuard][imageCheck] Comparaison avec ${fname} -> distance: ${d} (seuil: ${threshold})`);
-      if (d <= threshold) {
+      console.log(`[ScamGuard][imageCheck] Comparaison avec ${fname} -> distance: ${d.toFixed(4)} (seuil: ${threshold})`);
+      if (d <= threshold && d < bestDistance) {
+        bestDistance = d;
         const sim = Math.max(0, (1 - d) * 100);
         bestMatch = { matched: fname, distance: d, similarity: Math.round(sim * 10) / 10 };
-        console.log(`[ScamGuard][imageCheck] MATCH trouvé: ${fname} (similarité: ${bestMatch.similarity}%)`);
-        return bestMatch;
       }
+    }
+
+    if (bestMatch) {
+      console.log(`[ScamGuard][imageCheck] MEILLEUR MATCH: ${bestMatch.matched} (similarité: ${bestMatch.similarity}%, distance: ${bestMatch.distance.toFixed(4)})`);
+      return bestMatch;
     }
     console.log('[ScamGuard][imageCheck] Aucune correspondance sous le seuil');
   } catch (e) {

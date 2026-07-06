@@ -23,3 +23,5 @@ export function checkKeywords(text, keywords = DEFAULT_KEYWORDS) {
   console.log(`[ScamGuard][keywordCheck] ${factors.length} facteur(s) trouvé(s)`);
   return factors;
 }
+
+export { DEFAULT_KEYWORDS };
