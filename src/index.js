@@ -1,16 +1,16 @@
-const { getImageUrls, downloadImage, checkBannedImage } = require('./imageCheck');
-const { invalidateBannedCache } = require('./bannedImages');
+import { getImageUrls, downloadImage, checkBannedImage } from './imageCheck.js';
+import { invalidateBannedCache } from './bannedImages.js';
 
 /**
  * Analyse les images d'un message Discord.js
  * @param {import('discord.js').Message} message
  * @param {object} options
- * @param {number}  [options.bannedImagesThreshold=20]           Distance de Hamming max (0-256)
+ * @param {number}  [options.bannedImagesThreshold=0.15]         Similarité max (0-1, 0 = identique)
  * @param {number}  [options.bannedImagesScore=50]               Score ajouté si match
  * @param {string}  [options.bannedImagesDir='./banned_images']  Chemin du dossier
  * @returns {Promise<{score: number, imageFlag: object|null, factors: string[]}>}
  */
-async function analyzeMessageImages(message, options = {}) {
+export async function analyzeMessageImages(message, options = {}) {
   const bannedImagesScore = options.bannedImagesScore ?? 50;
   const result = { score: 0, imageFlag: null, factors: [] };
 
@@ -37,4 +37,4 @@ async function analyzeMessageImages(message, options = {}) {
   return result;
 }
 
-module.exports = { analyzeMessageImages, invalidateBannedCache };
+export { invalidateBannedCache };

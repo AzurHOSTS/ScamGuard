@@ -16,7 +16,7 @@ avec une bibliothèque d'images de scam connues, en tolérant les variantes (com
 ## Installation
 
 ```bash
-npm install scamguard-images
+npm install @azurhosts/scamguard-images
 ```
 
 ## Démarrage rapide
@@ -86,7 +86,7 @@ Le plugin tolère les légères modifications d'une image (recadrage, compressio
 | Package | Utilisation |
 |---------|-------------|
 | `jimp` | Lecture et décodage des images |
-| `blockhash-js` | Calcul du hash perceptuel |
+| `blockhash` | Calcul du hash perceptuel |
 | `axios` | Téléchargement des images |
 
 ## Prérequis

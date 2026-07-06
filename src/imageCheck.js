@@ -1,17 +1,13 @@
-const axios = require('axios');
-const Jimp = require('jimp');
-const blockhash = require('blockhash-js');
-const { loadBannedHashes } = require('./bannedImages');
+import axios from 'axios';
+import sharp from 'sharp';
+import { Jimp, compareHashes } from 'jimp';
+import { loadBannedHashes } from './bannedImages.js';
 
-function hammingDistance(a, b) {
-  let dist = 0;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) dist++;
-  }
-  return dist;
+function isWebp(buffer) {
+  return buffer.length > 12 && buffer.slice(8, 12).toString('ascii') === 'WEBP';
 }
 
-async function downloadImage(url, maxSize = 5 * 1024 * 1024, timeoutMs = 30000) {
+export async function downloadImage(url, maxSize = 5 * 1024 * 1024, timeoutMs = 30000) {
   try {
     const resp = await axios.get(url, {
       responseType: 'arraybuffer',
@@ -19,36 +15,42 @@ async function downloadImage(url, maxSize = 5 * 1024 * 1024, timeoutMs = 30000) 
       maxContentLength: maxSize,
     });
     return Buffer.from(resp.data);
-  } catch {
+  } catch (e) {
+    console.error('[ScamGuard] downloadImage failed:', e.message);
     return null;
   }
 }
 
-async function checkBannedImage(imageBuffer, options = {}) {
-  const threshold = options.bannedImagesThreshold ?? 20;
+export async function checkBannedImage(imageBuffer, options = {}) {
+  const threshold = options.bannedImagesThreshold ?? 0.15;
   const bannedDir = options.bannedImagesDir ?? './banned_images';
 
   const banned = await loadBannedHashes(bannedDir);
   if (!banned.length) return null;
 
   try {
-    const img = await Jimp.read(imageBuffer);
-    const h = blockhash.blockhashData(img.bitmap, 16, 2);
+    let buf = imageBuffer;
+    if (isWebp(buf)) {
+      buf = await sharp(buf).png().toBuffer();
+    }
+
+    const img = await Jimp.fromBuffer(buf);
+    const h = img.hash();
 
     for (const { fname, hash: bh } of banned) {
-      const d = hammingDistance(h, bh);
+      const d = compareHashes(h, bh);
       if (d <= threshold) {
-        const sim = Math.max(0, 100 - (d / h.length) * 100);
+        const sim = Math.max(0, (1 - d) * 100);
         return { matched: fname, distance: d, similarity: Math.round(sim * 10) / 10 };
       }
     }
   } catch (e) {
-    console.debug(`[ScamGuard] phash failed: ${e.message}`);
+    console.error(`[ScamGuard] phash failed:`, e.stack || e.message);
   }
   return null;
 }
 
-async function getImageUrls(message) {
+export async function getImageUrls(message) {
   const exts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp'];
   const urls = [];
 
@@ -68,5 +70,3 @@ async function getImageUrls(message) {
 
   return urls;
 }
-
-module.exports = { checkBannedImage, downloadImage, getImageUrls };
