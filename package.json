@@ -1,6 +1,6 @@
 {
   "name": "@azurhosts/scamguard-images",
-  "version": "11.0.0",
+  "version": "12.0.0",
   "description": "Plugin de détection d'images de scam par hash perceptuel pour bots Discord.js",
   "main": "src/index.js",
   "type": "module",
