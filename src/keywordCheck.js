@@ -27,6 +27,22 @@ const DEFAULT_KEYWORDS = [
   { word: 'suspicious activity', weight: 10 },
   { word: 'temporarily locked', weight: 15 },
   { word: 'confirm your account', weight: 15 },
+  { word: 'withdraw', weight: 15 },
+  { word: 'usdt', weight: 15 },
+  { word: 'tether', weight: 15 },
+  { word: 'bank card', weight: 15 },
+  { word: 'crypto', weight: 10 },
+  { word: 'eth', weight: 10 },
+  { word: 'bnb', weight: 10 },
+  { word: 'trx', weight: 10 },
+  { word: 'binance', weight: 15 },
+  { word: 'trust wallet', weight: 20 },
+  { word: 'seed phrase', weight: 25 },
+  { word: 'private key', weight: 25 },
+  { word: 'enter your', weight: 10 },
+  { word: 'withdraw now', weight: 20 },
+  { word: 'instant withdraw', weight: 20 },
+  { word: 'minimum withdrawal', weight: 15 },
 ];
 
 export function checkKeywords(text, keywords = DEFAULT_KEYWORDS) {
