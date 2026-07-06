@@ -2,6 +2,7 @@ import { getImageUrls, downloadImage, checkBannedImage } from './imageCheck.js';
 import { invalidateBannedCache, loadBannedHashes } from './bannedImages.js';
 import { checkKeywords } from './keywordCheck.js';
 import { computeUserSignals } from './userSignals.js';
+import { computeAccountSignals } from './accountCheck.js';
 import { checkUrls } from './urlCheck.js';
 import { extractTextFromImage, preloadOcr, terminateOcr } from './ocrCheck.js';
 
@@ -19,6 +20,19 @@ import { extractTextFromImage, preloadOcr, terminateOcr } from './ocrCheck.js';
  * @param {Array}   [options.keywords]                           Liste de mots-clés pondérés
  * @param {string[]} [options.whitelist]                         Domaines de confiance pour les URLs
  * @param {boolean} [options.checkDomainAge=true]                Active la vérification whois
+ * @param {number}  [options.accountAgeDays=30]                  Seuil âge du compte Discord
+ * @param {number}  [options.accountAgeScore=15]                 Score si compte récent
+ * @param {number}  [options.joinAgeDays=7]                      Seuil âge d'arrivée sur le serveur
+ * @param {number}  [options.joinAgeScore=15]                    Score si arrivée récente
+ * @param {number}  [options.noAvatarScore=5]                    Score si pas d'avatar global
+ * @param {number}  [options.suspiciousUsernameScore=10]         Score si pseudo suspect (mot+chiffres/chaîne aléatoire)
+ * @param {number}  [options.noRolesScore=5]                     Score si aucun rôle attribué
+ * @param {number}  [options.noServerAvatarScore=3]              Score si pas d'avatar spécifique au serveur
+ * @param {number}  [options.firstInteractionScore=10]           Score si première interaction du user
+ * @param {number}  [options.imageOnlyScore=10]                  Score si image seule sans texte
+ * @param {number}  [options.crosspostScore=20]                  Score si crosspost détecté
+ * @param {number}  [options.crosspostWindow=300000]             Fenêtre de crosspost (ms)
+ * @param {number}  [options.crosspostMinChannels=2]             Nb min de salons pour flag crosspost
  * @returns {Promise<{score: number, imageFlag: object|null, factors: string[], ocrText: string}>}
  */
 export async function analyzeMessageImages(message, options = {}) {
@@ -91,8 +105,15 @@ export async function analyzeMessageImages(message, options = {}) {
     result.factors.push(`no_text (+${noTextBonus})`);
   }
 
+  const accountFactors = computeAccountSignals(message, options);
+  console.log(`[ScamGuard][index] Étape vérification compte: ${accountFactors.length} facteur(s) trouvé(s)`);
+  for (const f of accountFactors) {
+    result.score += f.score;
+    result.factors.push(`${f.name} (+${f.score})`);
+  }
+
   const signalFactors = computeUserSignals(message, options);
-  console.log(`[ScamGuard][index] Étape signaux utilisateur: ${signalFactors.length} facteur(s) trouvé(s)`);
+  console.log(`[ScamGuard][index] Étape signaux comportementaux: ${signalFactors.length} facteur(s) trouvé(s)`);
   for (const f of signalFactors) {
     result.score += f.score;
     result.factors.push(`${f.name} (+${f.score})`);
@@ -118,6 +139,7 @@ export {
   checkBannedImage,
   checkKeywords,
   computeUserSignals,
+  computeAccountSignals,
   checkUrls,
   extractTextFromImage,
   preloadOcr,
